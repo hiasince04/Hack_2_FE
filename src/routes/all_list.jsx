@@ -26,7 +26,8 @@ export default function AllList() {
     useEffect(() => {
         setLoading(true);
 
-        fetch(`${apiUrl}/movies/list/?page=${currentPage}`)
+        // ✅ format=json 추가됨
+        fetch(`${apiUrl}/movies/list/?page=${currentPage}&format=json`)
             .then((res) => {
                 if (!res.ok) throw new Error('영화 목록을 불러오지 못했습니다.');
                 return res.json();
@@ -48,7 +49,7 @@ export default function AllList() {
                 setError(err.message);
                 setLoading(false);
             });
-    }, [currentPage]);
+    }, [currentPage, apiUrl]);
 
     const totalPages = Math.ceil(totalCount / itemsPerPage);
 

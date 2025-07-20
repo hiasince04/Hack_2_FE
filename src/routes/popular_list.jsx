@@ -10,7 +10,7 @@ export default function PopularList() {
     useEffect(() => {
         console.log('✅ API URL 확인:', apiUrl);
 
-        fetch(`${apiUrl}/movies/list/`)
+        fetch(`${apiUrl}/movies/list/?format=json`)
             .then(async (res) => {
                 if (!res.ok) {
                     const text = await res.text();
