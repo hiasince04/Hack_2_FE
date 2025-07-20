@@ -1,23 +1,27 @@
 // mainvite/src/routes/search.jsx 파일
-import React, { useState, useEffect, useRef } from 'react'; // useRef 추가
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './search.css';
+
+// 💡 API_BASE_URL을 환경에 따라 다르게 설정합니다.
+const API_BASE_URL = import.meta.env.PROD // 'production' 모드인지 확인 (Vite에서 제공하는 환경 변수)
+    ? 'https://kikoky.shop' // 배포 환경일 때 백엔드 API의 실제 도메인 주소
+    : ''; // 개발 환경일 때는 상대 경로를 사용하여 Vite 프록시가 작동하도록 함 (예: /movies)
 
 export default function SearchPage() {
     const [movies, setMovies] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isLoading, setIsLoading] = useState(false); // 초기 로딩 상태는 false로 시작
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const [currentPage, setCurrentPage] = useState(1); // 현재 페이지 상태 추가
-    const [totalPages, setTotalPages] = useState(1); // 총 페이지 상태 추가
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
-    // 검색어 입력 지연을 위한 debounce 타이머
     const debounceTimeoutRef = useRef(null);
 
-    // API 호출 로직을 별도 함수로 분리
     const fetchMovies = async (page, term) => {
         setIsLoading(true);
-        let requestUrl = `/movies/search/?page=${page}`;
+        // ⭐ API_BASE_URL을 접두사로 붙여 전체 URL을 구성합니다.
+        let requestUrl = `${API_BASE_URL}/movies/search/?page=${page}`;
         if (term) {
             requestUrl += `&title=${encodeURIComponent(term)}`;
         }
@@ -33,8 +37,8 @@ export default function SearchPage() {
             }
             const data = await res.json();
 
-            setMovies(data.results || []); // 현재 페이지의 결과만 저장
-            setTotalPages(Math.ceil(data.count / 20)); // PAGE_SIZE 20 기준으로 총 페이지 계산
+            setMovies(data.results || []);
+            setTotalPages(Math.ceil(data.count / 20));
         } catch (error) {
             console.error('영화 데이터를 불러오는 중 오류 발생:', error);
             setMovies([]);
@@ -44,34 +48,22 @@ export default function SearchPage() {
         }
     };
 
-    // searchTerm 또는 currentPage가 변경될 때 API 호출
     useEffect(() => {
-        // searchTerm이 비어있을 때는 초기화만 하고 API 호출을 하지 않을 수도 있습니다.
-        // if (!searchTerm) {
-        //    setMovies([]);
-        //    setTotalPages(1);
-        //    return;
-        // }
-
-        // debounceTimeoutRef.current에 저장된 기존 타이머가 있다면 클리어
         if (debounceTimeoutRef.current) {
             clearTimeout(debounceTimeoutRef.current);
         }
 
-        // 500ms 후에 API 호출
         debounceTimeoutRef.current = setTimeout(() => {
             fetchMovies(currentPage, searchTerm);
         }, 500);
 
-        // 컴포넌트 언마운트 시 타이머 클리어
         return () => {
             if (debounceTimeoutRef.current) {
                 clearTimeout(debounceTimeoutRef.current);
             }
         };
-    }, [searchTerm, currentPage]); // searchTerm과 currentPage가 변경될 때 API 호출
+    }, [searchTerm, currentPage]);
 
-    // 페이지 변경 핸들러 (Pagination 컴포넌트와 연동)
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
@@ -89,7 +81,7 @@ export default function SearchPage() {
                 value={searchTerm}
                 onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setCurrentPage(1); // 검색어 변경 시 페이지 1로 리셋
+                    setCurrentPage(1);
                 }}
                 className="search-input"
             />
