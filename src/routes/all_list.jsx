@@ -26,14 +26,18 @@ export default function AllList() {
     useEffect(() => {
         setLoading(true);
 
-        // ✅ format=json 추가됨
-        fetch(`${apiUrl}/movies/list/?page=${currentPage}&format=json`)
+        const baseUrl = `${apiUrl}/movies/list/`;
+        const pageParam = currentPage === 1 ? '?format=json' : `?page=${currentPage}&format=json`;
+        const fullUrl = `${baseUrl}${pageParam}`;
+        console.log('✅ 최종 호출 URL:', fullUrl); // 콘솔 확인용
+
+        fetch(fullUrl)
             .then((res) => {
                 if (!res.ok) throw new Error('영화 목록을 불러오지 못했습니다.');
                 return res.json();
             })
             .then((data) => {
-                console.log('응답 데이터:', data);
+                console.log('📦 응답 데이터:', data);
                 const normalizedNext = normalizePageUrl(data.next);
                 setNextPageUrl(normalizedNext);
 
