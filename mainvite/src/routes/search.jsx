@@ -13,17 +13,19 @@ export default function SearchPage() {
             setIsLoading(true);
             let allMovies = [];
             let currentPage = 1; // 현재 페이지 번호를 추적합니다.
+            let hasNextPage = true; // 다음 페이지가 있는지 여부를 추적합니다. (초기에는 있다고 가정)
 
             try {
-                while (true) {
-                    let currentFetchUrl = `/movies/search/?page=${currentPage}`;
+                while (hasNextPage) {
+                    // 항상 '/movies/search/' 경로와 현재 페이지, 검색어를 사용하여 URL을 구성합니다.
+                    let requestUrl = `/movies/search/?page=${currentPage}`;
                     if (searchTerm) {
-                        currentFetchUrl += `&title=${encodeURIComponent(searchTerm)}`;
+                        requestUrl += `&title=${encodeURIComponent(searchTerm)}`;
                     }
 
-                    console.log('➡️ 다음 요청 URL:', currentFetchUrl);
+                    console.log('➡️ 다음 요청 URL:', requestUrl);
 
-                    const res = await fetch(currentFetchUrl);
+                    const res = await fetch(requestUrl);
 
                     if (!res.ok) {
                         const errorText = await res.text();
@@ -34,49 +36,34 @@ export default function SearchPage() {
                     const data = await res.json();
                     allMovies = allMovies.concat(data.results || []);
 
+                    // 백엔드의 'next' 필드가 존재하는지 여부로 다음 페이지가 있는지 판단합니다.
+                    // 'next' 필드 안의 URL 내용이 무엇인지는 더 이상 중요하지 않습니다.
                     if (data.next) {
-                        const url = new URL(data.next);
-                        // 현재 프론트엔드가 HTTPS라면, 백엔드로부터 받은 next URL도 HTTPS로 강제 변경
-                        let nextUrl; // nextUrl 선언 추가
-                        if (window.location.protocol === 'https:' && url.protocol === 'http:') {
-                            nextUrl = `https://${url.host}${url.pathname}${url.search}`;
-                        } else {
-                            nextUrl = url.pathname + url.search; // 도메인 제외하고 경로+쿼리만
-                        }
-
-                        // 이 시점에서 nextUrl이 'movies/list'를 가리킬 수 있으므로, 경로를 재조정해야 합니다.
-                        // 검색 기능을 위해선 항상 '/movies/search/' 경로를 사용해야 합니다.
-                        if (!nextUrl.includes('/movies/search')) {
-                            const pageMatch = nextUrl.match(/page=(\d+)/);
-                            const nextPageNumber = pageMatch ? parseInt(pageMatch[1]) : currentPage + 1;
-                            nextUrl = `/movies/search/?page=${nextPageNumber}`;
-                            if (searchTerm) {
-                                nextUrl += `&title=${encodeURIComponent(searchTerm)}`;
-                            }
-                        }
-                        // `data.next`가 있다면 `currentPage`를 증가시켜 계속 요청을 보냅니다.
-                        currentPage++; // 다음 페이지로 이동
+                        currentPage++; // 다음 페이지 번호로 증가
                     } else {
-                        break; // data.next가 없으면 반복 종료
+                        hasNextPage = false; // data.next가 없으면 더 이상 페이지가 없다고 판단
                     }
                 }
-                setMovies(allMovies);
+                setMovies(allMovies); // 모든 영화 데이터를 상태에 저장
             } catch (error) {
                 console.error('영화 데이터를 불러오는 중 오류 발생:', error);
+                setMovies([]); // 오류 발생 시 영화 목록을 비웁니다.
             } finally {
                 setIsLoading(false);
             }
         };
 
+        // searchTerm이 변경될 때마다 fetchAllPages 함수를 다시 호출하여 새로운 검색을 시작합니다.
+        // 컴포넌트가 처음 마운트될 때 (searchTerm이 빈 문자열일 때)도 실행됩니다.
         fetchAllPages();
-    }, [searchTerm]);
+    }, [searchTerm]); // searchTerm이 변경될 때 useEffect가 다시 실행됩니다.
 
-    // ⭐⭐ 이 부분이 누락된 코드입니다. 여기에 추가해주세요! ⭐⭐
+    // movies 상태와 searchTerm 상태를 기반으로 필터링된 영화 목록을 생성합니다.
+    // 이는 항상 useEffect 외부에서, return 문 이전에 정의되어야 합니다.
     const filteredMovies = movies.filter((movie) => {
         const term = searchTerm.toLowerCase();
         return movie.title_kor?.toLowerCase().includes(term) || movie.title_eng?.toLowerCase().includes(term);
     });
-    // ⭐⭐ 누락된 코드 끝 ⭐⭐
 
     return (
         <div className="search-page">
