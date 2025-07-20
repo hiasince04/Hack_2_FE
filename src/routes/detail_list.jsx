@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './detail_list.css';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const StarRating = ({ rating, onRating, isInteractive = false }) => {
     const [hover, setHover] = useState(0);
     const totalStars = 5;
@@ -39,9 +41,8 @@ export default function DetailList() {
     const [myRating, setMyRating] = useState(0);
     const [error, setError] = useState(null);
 
-    // 영화 상세 정보 불러오기
     useEffect(() => {
-        fetch(`/movies/list/${id}/`)
+        fetch(`${apiUrl}/movies/list/${id}/`)
             .then((res) => {
                 if (!res.ok) throw new Error('영화 정보를 불러오지 못했습니다.');
                 return res.json();
@@ -50,20 +51,17 @@ export default function DetailList() {
             .catch((err) => setError(err.message));
     }, [id]);
 
-    // 댓글 목록 불러오기
     useEffect(() => {
-        // <--- 이 useEffect 훅이 올바르게 시작하고 닫힙니다.
-        fetch(`/movies/comment/list/${id}/`) // <--- 이 줄이 수정되었습니다 (이전 53번째 줄)
+        fetch(`${apiUrl}/movies/comment/list/${id}/`)
             .then((res) => {
                 if (!res.ok) throw new Error('댓글 정보를 불러오지 못했습니다.');
                 return res.json();
             })
             .then((data) => {
-                // 백엔드가 페이지네이션된 객체를 반환하므로, 'results' 필드를 사용합니다.
-                setComments(data.results || []); // <--- 이 줄이 수정되었습니다 (이전 56번째 줄)
+                setComments(data.results || []);
             })
             .catch((err) => console.error('댓글 로딩 실패:', err));
-    }, [id]); // <--- 이 useEffect 훅이 여기서 올바르게 닫힙니다.
+    }, [id]);
 
     const handleCommentSubmit = (e) => {
         e.preventDefault();
@@ -77,8 +75,7 @@ export default function DetailList() {
             return;
         }
 
-        // user 객체에서 토큰을 가져와 사용
-        const token = user.token; // <--- 이 줄이 수정되었습니다 (이전 83번째 줄 부근)
+        const token = user.token;
 
         if (!token) {
             alert('로그인 정보가 유효하지 않습니다. 다시 로그인해주세요.');
@@ -86,9 +83,7 @@ export default function DetailList() {
             return;
         }
 
-        // 댓글 작성 URL 수정: /movies/comment/create/<movie_id>/ 에 맞춤
-        fetch(`/movies/comment/create/${id}/`, {
-            // <--- 이 줄이 수정되었습니다 (이전 83번째 줄)
+        fetch(`${apiUrl}/movies/comment/create/${id}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -134,7 +129,7 @@ export default function DetailList() {
                     <h2 className="detail-title-eng">{movie.title_eng}</h2>
 
                     <div className="info-section">
-                        <span className="info-label">개봉일</span>
+                        <span className="info-label">개발일</span>
                         <span>{movie.release_date || '정보 없음'}</span>
                     </div>
                     <div className="info-section">
@@ -146,7 +141,7 @@ export default function DetailList() {
                         <StarRating rating={movie.rate || 0} />
                     </div>
                     <div className="info-section plot">
-                        <h3>줄거리</h3>
+                        <h3>중견리</h3>
                         <p>{movie.plot || '줄거리 정보 없음'}</p>
                     </div>
 
@@ -189,7 +184,7 @@ export default function DetailList() {
                         className="comment-textarea"
                         placeholder={
                             user
-                                ? `${user.username}님, 코멘트를 남겨보세요...`
+                                ? `${user.username}님, 코멘트를 남기세요...`
                                 : '코멘트를 작성하려면 로그인이 필요합니다.'
                         }
                         value={newComment}
