@@ -44,6 +44,8 @@ export default function SearchPage() {
             setMovies(data.results || []); // 현재 페이지의 영화 결과만 상태에 저장
             // 백엔드의 total count와 PAGE_SIZE(20)를 이용하여 총 페이지 수 계산
             setTotalPages(Math.ceil(data.count / 20));
+            console.log('총 영화 개수 (data.count):', data.count);
+            console.log('계산된 총 페이지 (totalPages):', Math.ceil(data.count / 20));
         } catch (error) {
             console.error('영화 데이터를 불러오는 중 오류 발생:', error);
             setMovies([]); // 오류 발생 시 영화 목록 초기화
