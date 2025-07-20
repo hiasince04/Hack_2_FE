@@ -1,0 +1,35 @@
+.pop_box {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden; /* 이미지가 모서리를 삐져나가지 않도록 */
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column; /* 아이템을 세로로 정렬 */
+    height: 100%; /* 부모 그리드에 맞춰 높이를 채움 */
+}
+
+.pop_box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.pop_image {
+    width: 100%; /* 너비를 100%로 채움 */
+    height: 85%; /* 이미지 높이를 박스의 대부분으로 설정 */
+    object-fit: cover; /* 이미지가 비율을 유지하며 꽉 차도록 설정 */
+    display: block;
+}
+
+.pop_title {
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1; /* 남은 공간을 채움 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

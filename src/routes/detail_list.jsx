@@ -1,0 +1,219 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import './detail_list.css';
+
+const StarRating = ({ rating, onRating, isInteractive = false }) => {
+    const [hover, setHover] = useState(0);
+    const totalStars = 5;
+    const displayRating = isInteractive ? rating : Math.round((rating / 10) * totalStars);
+
+    return (
+        <div className={`star-rating ${isInteractive ? 'interactive' : ''}`}>
+            {[...Array(totalStars)].map((_, index) => {
+                const starValue = index + 1;
+                return (
+                    <span
+                        key={starValue}
+                        className={starValue <= (hover || displayRating) ? 'star filled' : 'star'}
+                        onClick={() => isInteractive && onRating(starValue)}
+                        onMouseEnter={() => isInteractive && setHover(starValue)}
+                        onMouseLeave={() => isInteractive && setHover(0)}
+                    >
+                        ★
+                    </span>
+                );
+            })}
+        </div>
+    );
+};
+
+export default function DetailList() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const [movie, setMovie] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [myRating, setMyRating] = useState(0);
+    const [error, setError] = useState(null);
+
+    // 영화 상세 정보 불러오기
+    useEffect(() => {
+        fetch(`/movies/list/${id}/`)
+            .then((res) => {
+                if (!res.ok) throw new Error('영화 정보를 불러오지 못했습니다.');
+                return res.json();
+            })
+            .then((data) => setMovie(data))
+            .catch((err) => setError(err.message));
+    }, [id]);
+
+    // 댓글 목록 불러오기
+    useEffect(() => {
+        // <--- 이 useEffect 훅이 올바르게 시작하고 닫힙니다.
+        fetch(`/movies/comment/list/${id}/`) // <--- 이 줄이 수정되었습니다 (이전 53번째 줄)
+            .then((res) => {
+                if (!res.ok) throw new Error('댓글 정보를 불러오지 못했습니다.');
+                return res.json();
+            })
+            .then((data) => {
+                // 백엔드가 페이지네이션된 객체를 반환하므로, 'results' 필드를 사용합니다.
+                setComments(data.results || []); // <--- 이 줄이 수정되었습니다 (이전 56번째 줄)
+            })
+            .catch((err) => console.error('댓글 로딩 실패:', err));
+    }, [id]); // <--- 이 useEffect 훅이 여기서 올바르게 닫힙니다.
+
+    const handleCommentSubmit = (e) => {
+        e.preventDefault();
+        if (!user) {
+            alert('코멘트를 작성하려면 로그인이 필요합니다.');
+            navigate('/login');
+            return;
+        }
+        if (!newComment.trim()) {
+            alert('코멘트 내용을 입력해주세요.');
+            return;
+        }
+
+        // user 객체에서 토큰을 가져와 사용
+        const token = user.token; // <--- 이 줄이 수정되었습니다 (이전 83번째 줄 부근)
+
+        if (!token) {
+            alert('로그인 정보가 유효하지 않습니다. 다시 로그인해주세요.');
+            navigate('/login');
+            return;
+        }
+
+        // 댓글 작성 URL 수정: /movies/comment/create/<movie_id>/ 에 맞춤
+        fetch(`/movies/comment/create/${id}/`, {
+            // <--- 이 줄이 수정되었습니다 (이전 83번째 줄)
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ comment: newComment }),
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error('댓글 작성 실패');
+                return res.json();
+            })
+            .then((newData) => {
+                setComments([...comments, newData]);
+                setNewComment('');
+            })
+            .catch((err) => alert(err.message));
+    };
+
+    if (error) {
+        return (
+            <div className="detail-page-wrapper">
+                <div className="error-container">
+                    <h1>에러</h1>
+                    <p>{error}</p>
+                    <Link to="/" className="go-home-button">
+                        홈으로 돌아가기
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    if (!movie) {
+        return <div className="loading">로딩 중...</div>;
+    }
+
+    return (
+        <div className="detail-page-wrapper">
+            <div className="detail-container">
+                <img className="detail-poster" src={movie.poster_url} alt={movie.title_kor} />
+                <div className="detail-info">
+                    <h1 className="detail-title-kor">{movie.title_kor}</h1>
+                    <h2 className="detail-title-eng">{movie.title_eng}</h2>
+
+                    <div className="info-section">
+                        <span className="info-label">개봉일</span>
+                        <span>{movie.release_date || '정보 없음'}</span>
+                    </div>
+                    <div className="info-section">
+                        <span className="info-label">장르</span>
+                        <span>{movie.genre || '정보 없음'}</span>
+                    </div>
+                    <div className="info-section">
+                        <span className="info-label">평점</span>
+                        <StarRating rating={movie.rate || 0} />
+                    </div>
+                    <div className="info-section plot">
+                        <h3>줄거리</h3>
+                        <p>{movie.plot || '줄거리 정보 없음'}</p>
+                    </div>
+
+                    <div className="actors">
+                        <h3>출연진</h3>
+                        {movie.casts?.length > 0 ? (
+                            <div className="actor-list">
+                                {movie.casts.map((cast, index) => (
+                                    <div key={index} className="actor">
+                                        <img
+                                            src={cast.profile_url}
+                                            alt={cast.name}
+                                            className="actor-image"
+                                            onError={(e) => (e.currentTarget.src = '/default-profile.png')}
+                                        />
+                                        <p>
+                                            {cast.name}
+                                            {cast.role ? ` (${cast.role})` : ''}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p>배우 정보 없음</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="comment-section-wrapper">
+                <h3 className="section-title">코멘트 & 평점 남기기</h3>
+
+                <div className="rating-box">
+                    <span>내 평점:</span>
+                    <StarRating rating={myRating} onRating={setMyRating} isInteractive={true} />
+                </div>
+
+                <form className="comment-form" onSubmit={handleCommentSubmit}>
+                    <textarea
+                        className="comment-textarea"
+                        placeholder={
+                            user
+                                ? `${user.username}님, 코멘트를 남겨보세요...`
+                                : '코멘트를 작성하려면 로그인이 필요합니다.'
+                        }
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        disabled={!user}
+                    />
+                    <button type="submit" className="comment-submit-button" disabled={!user}>
+                        등록
+                    </button>
+                </form>
+
+                <div className="comment-list">
+                    {comments.length > 0 ? (
+                        comments.map((comment) => (
+                            <div key={comment.id} className="comment-item">
+                                <span className="comment-username">{comment.author || comment.username}</span>
+                                <p className="comment-text">{comment.content || comment.text || comment.comment}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="no-comments">아직 작성된 코멘트가 없습니다.</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}

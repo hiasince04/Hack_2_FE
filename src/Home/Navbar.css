@@ -1,0 +1,96 @@
+.navbar-header {
+    background-color: #1c2b6c;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    color: white;
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+}
+
+.navbar-logo {
+    font-size: 26px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-search-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 10px;
+}
+
+.navbar-auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar-search-button,
+.login-button,
+.signup-button,
+.logout-button {
+    height: 42px;
+    min-width: 130px;
+    padding: 0 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.navbar-search-button {
+    background-color: #5a9eff;
+    color: white;
+}
+.navbar-search-button:hover {
+    background-color: #3f87e0;
+}
+
+.login-button {
+    background-color: #007bff;
+    color: white;
+}
+.login-button:hover {
+    background-color: #005ec2;
+}
+
+.signup-button {
+    background-color: #8ecaff;
+    color: #1c2b6c;
+}
+.signup-button:hover {
+    background-color: #6db8ff;
+}
+
+.logout-button {
+    background-color: #f06262;
+    color: white;
+}
+.logout-button:hover {
+    background-color: #d94444;
+}
+
+.navbar-username {
+    font-size: 15px;
+    color: white;
+}

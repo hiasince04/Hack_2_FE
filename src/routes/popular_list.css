@@ -1,0 +1,41 @@
+.popular-list-section {
+    position: relative;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.popular-list-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+    color: #2c3e50;
+}
+
+.popular-movies-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 25px;
+}
+
+.see-all-button {
+    position: absolute;
+    top: 35px;
+    right: 30px;
+    padding: 8px 16px;
+    background-color: transparent;
+    color: #007bff;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s, color 0.2s;
+    border: 1px solid #007bff;
+}
+
+.see-all-button:hover {
+    background-color: #007bff;
+    color: white;
+}
